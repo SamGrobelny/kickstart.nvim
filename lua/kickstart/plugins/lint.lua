@@ -8,6 +8,7 @@ return {
       lint.linters_by_ft = {
         markdown = { 'markdownlint' },
         dockerfile = { 'hadolint' },
+        go = { 'golangcilint' },
       }
 
       -- To allow other plugins to add linters to require('lint').linters_by_ft,
@@ -51,6 +52,36 @@ return {
           lint.try_lint()
         end,
       })
+    end,
+  },
+  {
+    'rshkarin/mason-nvim-lint',
+    dependencies = {
+      'williamboman/mason.nvim',
+      'mfussenegger/nvim-lint',
+    },
+    config = function()
+      local mnl = require 'mason-nvim-lint'
+      local map = require('mason-nvim-lint.mapping').nvimlint_to_package
+      local linters_by_ft = require('lint').linters_by_ft
+
+      local ensure_installed = {}
+
+      for _, linters in pairs(linters_by_ft) do
+        for _, linter in ipairs(linters) do
+          local pkg = map[linter]
+
+          if pkg then
+            table.insert(ensure_installed, pkg)
+          else
+            vim.notify('No Mason map for linter: ' .. linter, vim.log.levels.WARN)
+          end
+        end
+      end
+
+      mnl.setup {
+        ensure_installed = ensure_installed,
+      }
     end,
   },
 }
